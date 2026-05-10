@@ -1,0 +1,3 @@
+package com.example.ecommerce.filter;
+import com.example.ecommerce.model.User; import javax.servlet.*; import javax.servlet.annotation.*; import javax.servlet.http.*; import java.io.IOException;
+@WebFilter("/admin/*") public class AdminFilter implements Filter{public void doFilter(ServletRequest request,ServletResponse response,FilterChain chain)throws IOException,ServletException{HttpServletRequest req=(HttpServletRequest)request;HttpServletResponse resp=(HttpServletResponse)response;User u=(User)req.getSession().getAttribute("user");if(u==null||!"ADMIN".equals(u.getRole())){resp.sendRedirect(req.getContextPath()+"/login");return;}chain.doFilter(request,response);}}

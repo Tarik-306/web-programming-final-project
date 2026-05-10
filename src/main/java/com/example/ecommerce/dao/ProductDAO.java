@@ -1,0 +1,14 @@
+package com.example.ecommerce.dao;
+
+import com.example.ecommerce.model.Product; import com.example.ecommerce.util.DBConnection; import java.sql.*; import java.util.*;
+
+public class ProductDAO {
+    private Product map(ResultSet rs) throws Exception{Product p=new Product(); p.setId(rs.getInt("id"));p.setCategoryId(rs.getInt("category_id")); try{p.setCategoryName(rs.getString("category_name"));}catch(Exception ignored){} p.setName(rs.getString("name"));p.setDescription(rs.getString("description"));p.setPrice(rs.getBigDecimal("price"));p.setStock(rs.getInt("stock"));p.setImageUrl(rs.getString("image_url"));p.setActive(rs.getBoolean("is_active"));p.setCreatedAt(rs.getTimestamp("created_at"));return p;}
+    private String base="SELECT p.*, c.name category_name FROM products p LEFT JOIN categories c ON p.category_id=c.id ";
+    public List<Product> findActive(Integer categoryId) throws Exception{List<Product> l=new ArrayList<>(); String sql=base+" WHERE p.is_active=1"+(categoryId!=null?" AND p.category_id=?":"")+" ORDER BY p.created_at DESC"; try(Connection c=DBConnection.getConnection();PreparedStatement ps=c.prepareStatement(sql)){if(categoryId!=null)ps.setInt(1,categoryId);ResultSet rs=ps.executeQuery();while(rs.next())l.add(map(rs));}return l;}
+    public List<Product> findAll() throws Exception{List<Product> l=new ArrayList<>(); try(Connection c=DBConnection.getConnection();Statement s=c.createStatement();ResultSet rs=s.executeQuery(base+" ORDER BY p.created_at DESC")){while(rs.next())l.add(map(rs));}return l;}
+    public Product findById(int id) throws Exception{try(Connection c=DBConnection.getConnection();PreparedStatement ps=c.prepareStatement(base+" WHERE p.id=?")){ps.setInt(1,id);ResultSet rs=ps.executeQuery();return rs.next()?map(rs):null;}}
+    public void save(Product p) throws Exception{String sql=p.getId()==0?"INSERT INTO products(category_id,name,description,price,stock,image_url,is_active) VALUES(?,?,?,?,?,?,?)":"UPDATE products SET category_id=?,name=?,description=?,price=?,stock=?,image_url=?,is_active=? WHERE id=?"; try(Connection c=DBConnection.getConnection();PreparedStatement ps=c.prepareStatement(sql)){ps.setInt(1,p.getCategoryId());ps.setString(2,p.getName());ps.setString(3,p.getDescription());ps.setBigDecimal(4,p.getPrice());ps.setInt(5,p.getStock());ps.setString(6,p.getImageUrl());ps.setBoolean(7,p.isActive()); if(p.getId()!=0)ps.setInt(8,p.getId()); ps.executeUpdate();}}
+    public void deactivate(int id) throws Exception{try(Connection c=DBConnection.getConnection();PreparedStatement ps=c.prepareStatement("UPDATE products SET is_active=0 WHERE id=?")){ps.setInt(1,id);ps.executeUpdate();}}
+    public int countAll() throws Exception{try(Connection c=DBConnection.getConnection();Statement s=c.createStatement();ResultSet r=s.executeQuery("SELECT COUNT(*) FROM products")){r.next();return r.getInt(1);}}
+}

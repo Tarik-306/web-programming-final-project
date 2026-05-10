@@ -1,0 +1,3 @@
+package com.example.ecommerce.servlet;
+import com.example.ecommerce.dao.*; import javax.servlet.*; import javax.servlet.annotation.*; import javax.servlet.http.*; import java.io.IOException;
+@WebServlet({"/","/home"}) public class HomeServlet extends HttpServlet{protected void doGet(HttpServletRequest req,HttpServletResponse resp)throws ServletException,IOException{try{Integer cat=req.getParameter("categoryId")==null?null:Integer.parseInt(req.getParameter("categoryId"));req.setAttribute("products",new ProductDAO().findActive(cat));req.setAttribute("categories",new CategoryDAO().findActive());req.getRequestDispatcher("/WEB-INF/views/index.jsp").forward(req,resp);}catch(Exception e){throw new ServletException(e);}}}
